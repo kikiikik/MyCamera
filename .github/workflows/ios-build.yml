@@ -1,0 +1,51 @@
+name: iOS Build and Export .ipa
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest  # Mac環境で実行
+
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Xcodeのキャッシュ設定（ビルド時間短縮）
+        uses: actions/cache@v3
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-xcode-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
+
+      - name: Xcodeのバージョン確認
+        run: xcodebuild -version
+
+      - name: Xcodeのアーカイブ作成
+        run: |
+          xcodebuild archive \
+          -scheme MyApp \
+          -sdk iphoneos \
+          -configuration Release \
+          -archivePath build/MyApp.xcarchive \
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Export .ipa
+        run: |
+          mkdir -p build/ios
+          xcodebuild -exportArchive \
+          -archivePath build/MyApp.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath build/ios/
+
+      - name: `.ipa`のアップロード（Artifactsとして保存）
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp.ipa
+          path: build/ios/*.ipa
