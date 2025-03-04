@@ -44,8 +44,9 @@ jobs:
           -exportOptionsPlist ExportOptions.plist \
           -exportPath build/ios/
 
-      - name: `.ipa`のアップロード（Artifactsとして保存）
+      - name: "IPAファイルのアップロード（Artifactsとして保存）"  # 修正
         uses: actions/upload-artifact@v4
         with:
           name: MyApp.ipa
           path: build/ios/*.ipa
+
